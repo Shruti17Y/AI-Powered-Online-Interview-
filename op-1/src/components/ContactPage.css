@@ -1,0 +1,59 @@
+/* Professional refinements for ContactPage */
+.contact-page {
+  --brand: #6366f1; /* indigo-500 */
+  --brand-dark: #4f46e5;
+  --text: #1e293b;
+  --muted: #4b5563;
+  --border: rgba(99, 102, 241, 0.2);
+}
+
+/* Inputs & selects focus */
+.contact-page input,
+.contact-page select,
+.contact-page textarea {
+  outline: none;
+}
+.contact-page input:focus,
+.contact-page select:focus,
+.contact-page textarea:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+}
+
+/* Primary button */
+.contact-page .btn-primary {
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+}
+.contact-page .btn-primary:hover {
+  box-shadow: 0 10px 24px rgba(99, 102, 241, 0.25);
+  transform: translateY(-1px);
+}
+.contact-page .btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Scrollable card (Company Registration) */
+.contact-page .scroll-card {
+  max-height: 70vh;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+/* Custom scrollbar for WebKit */
+.contact-page .scroll-card::-webkit-scrollbar {
+  width: 10px;
+}
+.contact-page .scroll-card::-webkit-scrollbar-track {
+  background: rgba(99, 102, 241, 0.06);
+  border-radius: 10px;
+}
+.contact-page .scroll-card::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.4);
+  border-radius: 10px;
+}
+.contact-page .scroll-card::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.6);
+}

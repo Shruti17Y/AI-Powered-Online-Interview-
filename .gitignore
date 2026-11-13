@@ -1,0 +1,38 @@
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Node dependencies
+node_modules/
+
+# Python cache & compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+*.log
+
+# Databases & local media
+*.sqlite3
+db.sqlite3
+media/
+debug_frames/
+debug_audio.wav
+debug_frame.jpg
+
+# Environment & secret variables
+.env
+.env.local
+
+# Build artifacts
+build/
+dist/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Tools
+bfg-repo-cleaner*/
+*.jar
