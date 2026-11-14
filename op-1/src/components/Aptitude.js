@@ -1,5 +1,6 @@
 
 
+import API_BASE_URL from '../apiConfig.js';
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAptitude } from '../context/AptitudeContext.js';
@@ -67,7 +68,7 @@ export default function Aptitude({ onPass, onFail }) {
     setPassedAptitude(didPass);
     
     try {
-      await fetch('http://127.0.0.1:8000/api/submit_aptitude_result/', {
+      await fetch(`${API_BASE_URL}/api/submit_aptitude_result/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

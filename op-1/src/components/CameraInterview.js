@@ -1,6 +1,7 @@
 
 
 
+import API_BASE_URL from '../apiConfig.js';
 import React, { useRef, useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.js";
@@ -118,7 +119,7 @@ const CameraInterview = ({ companyId: propCompanyId, skills: propSkills }) => {
       console.log('Required skills from URL:', requiredSkills);
     }
 
-    fetch("http://127.0.0.1:8000/api/questions/")
+    fetch(`${API_BASE_URL}/api/questions/`)
       .then((res) => res.json())
       .then((data) => {
         // Filter questions based on required skills
@@ -265,7 +266,7 @@ const CameraInterview = ({ companyId: propCompanyId, skills: propSkills }) => {
   const submitFinalInterviewResult = async () => {
    
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/submit_interview_result/", {
+      const res = await fetch(`${API_BASE_URL}/api/submit_interview_result/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -314,7 +315,7 @@ const CameraInterview = ({ companyId: propCompanyId, skills: propSkills }) => {
       formData.append("audio", audioBlob, "audio.webm");
       if (frameBlob) formData.append("frame", frameBlob, "frame.jpg");
 
-      const res = await fetch("http://127.0.0.1:8000/submit_answer/", {
+      const res = await fetch(`${API_BASE_URL}/submit_answer/`, {
         method: "POST",
         body: formData,
       });

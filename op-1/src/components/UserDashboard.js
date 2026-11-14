@@ -25,7 +25,7 @@ function UserDashboard() {
 
   const fetchApprovedCompanies = async () => {
     try {
-      const res = await fetch('/api/company/approved/');
+      const res = await fetch(`${API_BASE_URL}/api/company/approved/`);
       if (!res.ok) throw new Error('Failed to fetch approved companies');
       const data = await res.json();
       // Map backend fields to frontend card structure
@@ -102,7 +102,7 @@ function UserDashboard() {
     try {
       const form = new FormData();
       form.append('file', resume);
-      const resp = await fetch('/api/resume-scan/', {
+      const resp = await fetch(`${API_BASE_URL}/api/resume-scan/`, {
         method: 'POST',
         body: form,
       });

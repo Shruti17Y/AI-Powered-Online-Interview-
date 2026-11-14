@@ -1,3 +1,4 @@
+import API_BASE_URL from '../apiConfig.js';
 import React, { useEffect, useState } from 'react';
 import { useParams, useSearchParams, Link } from 'react-router-dom';
 import axios from 'axios';
@@ -18,7 +19,7 @@ const CandidateHistory = () => {
     }
     setLoading(true);
     axios
-      .get(`http://localhost:8000/api/hr/interview-history/?company_id=${companyId}`)
+      .get(`${API_BASE_URL}/api/hr/interview-history/?company_id=${companyId}`)
       .then((res) => {
         // Find the candidate by email
         const candidate = res.data.find((u) => u.email === email);

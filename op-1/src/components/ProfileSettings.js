@@ -1,5 +1,6 @@
 
 
+import API_BASE_URL from '../apiConfig.js';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext.js';
 import { useNavigate } from 'react-router-dom';
@@ -132,7 +133,7 @@ const ProfileSettings = () => {
         payload.new_password = formData.newPassword;
       }
 
-      const response = await fetch('/api/profile/', {
+      const response = await fetch(`${API_BASE_URL}/api/profile/`, {
         method: 'PUT',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

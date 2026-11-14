@@ -1,3 +1,4 @@
+import API_BASE_URL from '../apiConfig.js';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.js';
@@ -21,7 +22,7 @@ function Login() {
 
     try {
       // Login to establish Django session (CSRF exempt in dev)
-      const resp = await fetch('/api/login/', {
+      const resp = await fetch(`${API_BASE_URL}/api/login/`, {
         method: 'POST',
         credentials: 'include',
         headers: {

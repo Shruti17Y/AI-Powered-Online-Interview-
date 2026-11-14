@@ -1,3 +1,4 @@
+import API_BASE_URL from '../apiConfig.js';
 import React, { useState, useEffect } from "react";
 
 const subjects = [
@@ -44,7 +45,7 @@ export default function Practice() {
     setLoading(true);
     setProgress(30);
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/practice-questions/?subject=${encodeURIComponent(subject)}`);
+      const res = await fetch(`${API_BASE_URL}/api/practice-questions/?subject=${encodeURIComponent(subject)}`);
       const data = await res.json();
       const cleaned = data.slice(0, 10).map((q) => ({
         ...q,
@@ -70,7 +71,7 @@ export default function Practice() {
     setLoading(true);
     setProgress(30);
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/aptitude-questions/');
+      const res = await fetch(`${API_BASE_URL}/api/aptitude-questions/`);
       const data = await res.json();
       setAptitudeQuestions(data);
       setAptitudeAnswers({});
@@ -115,7 +116,7 @@ export default function Practice() {
   const handleSubmit = async (idx) => {
     const answer = answers[idx] || "";
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/evaluate-answer/", {
+      const res = await fetch(`${API_BASE_URL}/api/evaluate-answer/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -145,7 +146,7 @@ export default function Practice() {
 
   const handleAptitudeSubmit = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/evaluate-aptitude/", {
+      const res = await fetch(`${API_BASE_URL}/api/evaluate-aptitude/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -1,3 +1,4 @@
+import API_BASE_URL from '../apiConfig.js';
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext.js";
 
@@ -23,7 +24,7 @@ export default function MyInterviews() {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`http://127.0.0.1:8000/api/my-interviews/?user_id=${userId}`);
+      const response = await fetch(`${API_BASE_URL}/api/my-interviews/?user_id=${userId}`);
       if (!response.ok) {
         if (response.status === 404) {
           setInterviewData([]);
