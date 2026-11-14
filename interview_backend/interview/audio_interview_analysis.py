@@ -1,4 +1,7 @@
-import sounddevice as sd
+try:
+    import sounddevice as sd
+except Exception:
+    sd = None
 import numpy as np
 import librosa
 import webrtcvad
@@ -18,6 +21,8 @@ OUTPUT_WAV = 'output.wav'
 
 # ========== AUDIO RECORDING ==========
 def record_audio(filename=OUTPUT_WAV, duration=RECORD_SECONDS, sample_rate=SAMPLE_RATE):
+    if sd is None:
+        raise RuntimeError("sounddevice is not available in headless cloud environment")
     print(f"Recording for {duration} seconds...")
     audio = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=CHANNELS, dtype='int16')
     sd.wait()
