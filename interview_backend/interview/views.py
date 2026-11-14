@@ -13,11 +13,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 import numpy as np
 
-try:
-    from sentence_transformers import SentenceTransformer, util
-except Exception:
-    SentenceTransformer = None
-    util = None
+SentenceTransformer = None
+util = None
 
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
@@ -674,13 +671,23 @@ def practice_questions(request):
 # from rest_framework.response import Response
 # from sentence_transformers import SentenceTransformer, util
 
-try:
-    if SentenceTransformer is not None:
-        sbert_model = SentenceTransformer('all-MiniLM-L6-v2')
-    else:
-        sbert_model = None
-except Exception:
-    sbert_model = None
+_view_sbert_model = None
+_view_sbert_util = None
+
+def get_view_sbert():
+    global _view_sbert_model, _view_sbert_util
+    if _view_sbert_model is None:
+        try:
+            from sentence_transformers import SentenceTransformer as ST, util as u
+            _view_sbert_model = ST('all-MiniLM-L6-v2')
+            _view_sbert_util = u
+        except Exception:
+            _view_sbert_model = False
+            _view_sbert_util = False
+    return (
+        _view_sbert_model if _view_sbert_model is not False else None,
+        _view_sbert_util if _view_sbert_util is not False else None
+    )
 
 @api_view(['POST'])
 def evaluate_answer(request):
@@ -691,11 +698,12 @@ def evaluate_answer(request):
         # Fallback for demo/testing
         reference_answer = "This is a sample correct answer for testing purposes."
 
-    if sbert_model is not None and util is not None:
+    sbert_model, sbert_util = get_view_sbert()
+    if sbert_model is not None and sbert_util is not None:
         try:
             emb1 = sbert_model.encode(user_answer, convert_to_tensor=True)
             emb2 = sbert_model.encode(reference_answer, convert_to_tensor=True)
-            score = util.cos_sim(emb1, emb2).item()
+            score = sbert_util.cos_sim(emb1, emb2).item()
             percent_score = round(score * 100, 2)
         except Exception:
             from difflib import SequenceMatcher
