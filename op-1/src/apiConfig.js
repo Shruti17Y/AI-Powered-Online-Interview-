@@ -1,6 +1,10 @@
 // Central API base URL configuration
-// In production (Vercel), set REACT_APP_API_URL in Vercel Environment Variables.
-// In local development, it defaults to http://127.0.0.1:8000
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000';
+// In production, defaults to your live Render backend URL
+const API_BASE_URL = (
+  process.env.REACT_APP_API_URL ||
+  (process.env.NODE_ENV === 'development'
+    ? 'http://127.0.0.1:8000'
+    : 'https://ai-powered-online-interview.onrender.com')
+).replace(/\/+$/, '');
 
 export default API_BASE_URL;
