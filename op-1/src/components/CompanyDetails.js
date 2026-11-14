@@ -1,3 +1,4 @@
+import API_BASE_URL from '../apiConfig';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
@@ -243,9 +244,9 @@ const CompanyDetails = () => {
   const logoUrl = state.company?.logo?.startsWith('http') 
     ? state.company.logo 
     : state.company?.logo?.startsWith('/media/') 
-      ? `http://localhost:8000${state.company.logo}`
+      ? `${API_BASE_URL}${state.company.logo}`
       : state.company?.logo 
-        ? `http://localhost:8000/media/${state.company.logo.replace(/^([\/\\])+/u, '')}`
+        ? `${API_BASE_URL}/media/${state.company.logo.replace(/^([\/\\])+/u, '')}`
         : `https://ui-avatars.com/api/?name=${encodeURIComponent(state.company.name)}&background=random&color=fff&bold=true&size=128`;
 
   const benefitsArray = Array.isArray(state.company.benefits)

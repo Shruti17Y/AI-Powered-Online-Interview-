@@ -1,3 +1,4 @@
+import API_BASE_URL from '../apiConfig';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CompanyDetailsModal from './CompanyDetailsModal.js';
@@ -35,7 +36,7 @@ function UserDashboard() {
         location: c.location || '',
         type: c.job_type || '',
         salary: c.salary || '',
-        logo: c.logo ? (c.logo.startsWith('http') ? c.logo : `http://127.0.0.1:8000${c.logo}`) : '',
+        logo: c.logo ? (c.logo.startsWith('http') ? c.logo : `${API_BASE_URL}${c.logo}`) : '',
         experience: c.experience_required || '',
         skills: c.required_skills ? c.required_skills.split(',').map(s => s.trim()) : [],
         description: c.description || '',

@@ -319,6 +319,7 @@
 // }
 
 // export default Home; 
+import API_BASE_URL from '../apiConfig';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.js';
@@ -439,7 +440,7 @@ function Home() {
             location: c.location || '—',
             type: c.job_type || '—',
             salary: c.salary || '—',
-            logo: c?.logo ? (String(c.logo).startsWith('http') ? c.logo : `http://127.0.0.1:8000${c.logo}`) : 'https://via.placeholder.com/150',
+            logo: c?.logo ? (String(c.logo).startsWith('http') ? c.logo : `${API_BASE_URL}${c.logo}`) : 'https://via.placeholder.com/150',
             skills: Array.isArray(c.required_skills)
               ? c.required_skills
               : typeof c.required_skills === 'string'

@@ -1,5 +1,6 @@
 
 
+import API_BASE_URL from '../apiConfig';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -128,7 +129,7 @@ function AdminDashboard() {
         <div className="flex items-center space-x-4 mb-4">
           {company.logo ? (
             <img
-              src={company.logo.startsWith('http') ? company.logo : `http://127.0.0.1:8000${company.logo}`}
+              src={company.logo.startsWith('http') ? company.logo : `${API_BASE_URL}${company.logo}`}
               alt="Logo"
               className="h-16 w-16 object-cover rounded-full border-2 border-gray-100 shadow-sm"
             />
@@ -417,7 +418,7 @@ function AdminDashboard() {
                 <div className="flex items-center space-x-4">
                   {selectedCompany.logo ? (
                     <img
-                      src={selectedCompany.logo.startsWith('http') ? selectedCompany.logo : `http://127.0.0.1:8000${selectedCompany.logo}`}
+                      src={selectedCompany.logo.startsWith('http') ? selectedCompany.logo : `${API_BASE_URL}${selectedCompany.logo}`}
                       alt="Logo"
                       className="h-16 w-16 object-cover rounded-full border-2 border-gray-100 shadow-sm"
                     />
