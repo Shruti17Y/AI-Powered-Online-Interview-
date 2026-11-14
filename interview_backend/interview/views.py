@@ -13,14 +13,22 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 import numpy as np
 
-from sentence_transformers import SentenceTransformer, util
+try:
+    from sentence_transformers import SentenceTransformer, util
+except Exception:
+    SentenceTransformer = None
+    util = None
 
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.middleware.csrf import get_token
 import cv2
 import numpy as np
-from deepface import DeepFace
+
+try:
+    from deepface import DeepFace
+except Exception:
+    DeepFace = None
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse, HttpResponseNotAllowed, HttpResponseNotFound
 import json
@@ -33,9 +41,13 @@ from rest_framework.permissions import AllowAny
 
 import os
 from .audio_interview_analysis import analyze_interview_audio
-from pydub import AudioSegment
 import time
-from pydub.utils import which
+try:
+    from pydub import AudioSegment
+    from pydub.utils import which
+except Exception:
+    AudioSegment = None
+    which = None
 import subprocess
 
 from .transcribe import transcribe_audio
@@ -662,7 +674,13 @@ def practice_questions(request):
 # from rest_framework.response import Response
 # from sentence_transformers import SentenceTransformer, util
 
-sbert_model = SentenceTransformer('all-MiniLM-L6-v2')
+try:
+    if SentenceTransformer is not None:
+        sbert_model = SentenceTransformer('all-MiniLM-L6-v2')
+    else:
+        sbert_model = None
+except Exception:
+    sbert_model = None
 
 @api_view(['POST'])
 def evaluate_answer(request):
@@ -673,10 +691,18 @@ def evaluate_answer(request):
         # Fallback for demo/testing
         reference_answer = "This is a sample correct answer for testing purposes."
 
-    emb1 = sbert_model.encode(user_answer, convert_to_tensor=True)
-    emb2 = sbert_model.encode(reference_answer, convert_to_tensor=True)
-    score = util.cos_sim(emb1, emb2).item()
-    percent_score = round(score * 100, 2)
+    if sbert_model is not None and util is not None:
+        try:
+            emb1 = sbert_model.encode(user_answer, convert_to_tensor=True)
+            emb2 = sbert_model.encode(reference_answer, convert_to_tensor=True)
+            score = util.cos_sim(emb1, emb2).item()
+            percent_score = round(score * 100, 2)
+        except Exception:
+            from difflib import SequenceMatcher
+            percent_score = round(SequenceMatcher(None, str(user_answer).lower(), str(reference_answer).lower()).ratio() * 100, 2)
+    else:
+        from difflib import SequenceMatcher
+        percent_score = round(SequenceMatcher(None, str(user_answer).lower(), str(reference_answer).lower()).ratio() * 100, 2)
 
     if percent_score > 80:
         feedback = "Excellent answer! Very relevant."
