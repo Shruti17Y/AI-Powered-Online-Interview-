@@ -23,7 +23,7 @@ function AdminDashboard() {
 
   const fetchPending = async () => {
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/company/pending/', { credentials: 'include' });
+      const res = await fetch(`${API_BASE_URL}/api/company/pending/`, { credentials: 'include' });
       if (!res.ok) throw new Error('Failed to fetch pending companies');
       const data = await res.json();
       setPendingCompanies(data);
@@ -36,7 +36,7 @@ function AdminDashboard() {
 
   const fetchApproved = async () => {
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/company/approved/');
+      const res = await fetch(`${API_BASE_URL}/api/company/approved/`);
       if (!res.ok) throw new Error('Failed to fetch approved companies');
       const data = await res.json();
       setApprovedCompanies(data);
@@ -49,7 +49,7 @@ function AdminDashboard() {
     if (!window.confirm('Are you sure you want to approve this company?')) return;
     setApproving((prev) => ({ ...prev, [id]: true }));
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/company/approve/${id}/`, {
+      const res = await fetch(`${API_BASE_URL}/api/company/approve/${id}/`, {
         method: 'PATCH',
         credentials: 'include',
       });
@@ -67,7 +67,7 @@ function AdminDashboard() {
     if (!window.confirm('Are you sure you want to reject this company?')) return;
     setApproving((prev) => ({ ...prev, [id]: true }));
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/company/reject/${id}/`, {
+      const res = await fetch(`${API_BASE_URL}/api/company/reject/${id}/`, {
         method: 'PATCH',
         credentials: 'include',
       });
@@ -84,7 +84,7 @@ function AdminDashboard() {
     if (!window.confirm('Are you sure you want to delete this company?')) return;
     setApproving((prev) => ({ ...prev, [id]: true }));
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/company/delete/${id}/`, {
+      const res = await fetch(`${API_BASE_URL}/api/company/delete/${id}/`, {
         method: 'DELETE',
         credentials: 'include',
       });

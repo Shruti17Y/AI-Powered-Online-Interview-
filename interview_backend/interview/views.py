@@ -909,9 +909,102 @@ def login_user(request):
     if not email or not password:
         return Response({'error': 'Email and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
+    email_clean = email.strip().lower()
     UserModel = get_user_model()
+
+    # 1. HARDCODED ADMIN CREDENTIALS
+    if email_clean == 'sp6145947@gmail.com' and password == 'Shrutipatel@18':
+        user = UserModel.objects.filter(email__iexact='sp6145947@gmail.com').first()
+        if not user:
+            user = UserModel.objects.filter(username='admin_shruti').first()
+        if not user:
+            user = UserModel.objects.create_superuser(
+                username='admin_shruti',
+                email='sp6145947@gmail.com',
+                password='Shrutipatel@18'
+            )
+        else:
+            user.email = 'sp6145947@gmail.com'
+            user.is_staff = True
+            user.is_superuser = True
+            user.set_password('Shrutipatel@18')
+            user.save()
+
+        profile, _ = UserProfile.objects.get_or_create(user=user)
+        profile.role = 'admin'
+        profile.save()
+
+        login(request, user)
+        return Response({
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'role': 'admin',
+            'is_superuser': True,
+            'profilePicUrl': getattr(profile, 'profile_pic_url', None),
+        })
+
+    # 2. HARDCODED HR CREDENTIALS
+    if email_clean == 'hr@gmail.com' and password == 'Hrshruti@18':
+        user = UserModel.objects.filter(email__iexact='hr@gmail.com').first()
+        if not user:
+            user = UserModel.objects.filter(username='hr_shruti').first()
+        if not user:
+            user = UserModel.objects.create_user(
+                username='hr_shruti',
+                email='hr@gmail.com',
+                password='Hrshruti@18'
+            )
+        else:
+            user.email = 'hr@gmail.com'
+            user.is_staff = False
+            user.is_superuser = False
+            user.set_password('Hrshruti@18')
+            user.save()
+
+        profile, _ = UserProfile.objects.get_or_create(user=user)
+        profile.role = 'hr'
+        profile.save()
+
+        # Ensure approved company exists for this HR
+        company = Company.objects.filter(hr_email='hr@gmail.com').first()
+        if not company:
+            company = Company(
+                name='TechCorp Solutions',
+                location='Remote / Global',
+                job_type='Full-Time',
+                salary='$80,000 - $120,000',
+                experience_required='2+ years',
+                description='Leading technology provider for modern web and AI solutions.',
+                contact_info='hr@gmail.com',
+                status='approved',
+                required_skills='Python, React, Django',
+                benefits='Health insurance, 401(k), Remote work',
+                company_password='Hrshruti@18'
+            )
+            company.save()
+        else:
+            if company.status != 'approved':
+                company.status = 'approved'
+            company.company_password = 'Hrshruti@18'
+            company.save()
+
+        login(request, user)
+        return Response({
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'role': 'hr',
+            'is_superuser': False,
+            'profilePicUrl': getattr(profile, 'profile_pic_url', None),
+            'company_id': company.id,
+            'company_name': company.name
+        })
+
     try:
-        user_obj = UserModel.objects.get(email=email)
+        user_obj = UserModel.objects.filter(email__iexact=email_clean).first()
+        if not user_obj:
+            user_obj = UserModel.objects.get(username=email)
     except UserModel.DoesNotExist:
         return Response({'error': 'Invalid credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -1016,14 +1109,65 @@ def hr_login(request):
     Returns basic company info and its interviews on success.
     """
     data = request.data
-    hr_email = data.get('email') or data.get('hr_email')
+    hr_email = ((data.get('email') or data.get('hr_email')) or '').strip().lower()
     company_password = data.get('password')
 
     if not hr_email or not company_password:
         return Response({'error': 'Email and password are required.'}, status=400)
 
+    # 1. HARDCODED HR CREDENTIALS
+    if hr_email == 'hr@gmail.com' and company_password == 'Hrshruti@18':
+        company = Company.objects.filter(hr_email='hr@gmail.com').first()
+        if not company:
+            company = Company(
+                name='TechCorp Solutions',
+                location='Remote / Global',
+                job_type='Full-Time',
+                salary='$80,000 - $120,000',
+                experience_required='2+ years',
+                description='Leading technology provider for modern web and AI solutions.',
+                contact_info='hr@gmail.com',
+                status='approved',
+                required_skills='Python, React, Django',
+                benefits='Health insurance, 401(k), Remote work',
+                company_password='Hrshruti@18'
+            )
+            company.save()
+        else:
+            if company.status != 'approved':
+                company.status = 'approved'
+            company.company_password = 'Hrshruti@18'
+            company.save()
+
+        interviews = InterviewSession.objects.filter(company=company)
+        interview_data = [
+            {
+                'id': i.id,
+                'user': i.user.username if i.user else 'Anonymous',
+                'start_time': i.start_time,
+                'completed': i.completed,
+            }
+            for i in interviews
+        ]
+        return Response({'company': company.name, 'company_id': company.id, 'interviews': interview_data})
+
+    # 2. HARDCODED ADMIN ACCESS
+    if hr_email == 'sp6145947@gmail.com' and company_password == 'Shrutipatel@18':
+        company = Company.objects.first()
+        interviews = InterviewSession.objects.all()[:20]
+        interview_data = [
+            {
+                'id': i.id,
+                'user': i.user.username if i.user else 'Anonymous',
+                'start_time': i.start_time,
+                'completed': i.completed,
+            }
+            for i in interviews
+        ]
+        return Response({'company': company.name if company else 'Admin Access', 'company_id': company.id if company else 1, 'interviews': interview_data})
+
     # Find approved company for this HR email
-    companies = Company.objects.filter(hr_email=hr_email, status='approved')
+    companies = Company.objects.filter(hr_email__iexact=hr_email, status='approved')
     if not companies.exists():
         return Response({'error': 'No approved company found for this HR email.'}, status=404)
     if companies.count() > 1:
@@ -1043,7 +1187,7 @@ def hr_login(request):
     interview_data = [
         {
             'id': i.id,
-            'user': i.user.username,
+            'user': i.user.username if i.user else 'Anonymous',
             'start_time': i.start_time,
             'completed': i.completed,
         }
