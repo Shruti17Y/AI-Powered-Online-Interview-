@@ -53,7 +53,10 @@ function AdminDashboard() {
         method: 'PATCH',
         credentials: 'include',
       });
-      if (!res.ok) throw new Error('Failed to approve company');
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || errJson.detail || 'Failed to approve company');
+      }
       await fetchPending();
       await fetchApproved();
     } catch (err) {
@@ -71,7 +74,10 @@ function AdminDashboard() {
         method: 'PATCH',
         credentials: 'include',
       });
-      if (!res.ok) throw new Error('Failed to reject company');
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || errJson.detail || 'Failed to reject company');
+      }
       await fetchPending();
     } catch (err) {
       setError(err.message);
@@ -88,7 +94,10 @@ function AdminDashboard() {
         method: 'DELETE',
         credentials: 'include',
       });
-      if (!res.ok) throw new Error('Failed to delete company');
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || errJson.detail || 'Failed to delete company');
+      }
       await fetchApproved();
     } catch (err) {
       setError(err.message);

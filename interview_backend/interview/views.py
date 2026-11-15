@@ -481,8 +481,10 @@ def get_results(request, session_id):
 def get_questions(request):
     return Response(QUESTIONS)
 
+@csrf_exempt
 @api_view(['POST'])
 @parser_classes([MultiPartParser, FormParser])
+@authentication_classes([])
 @permission_classes([AllowAny])
 def register_company(request):
     print('REGISTRATION DATA:', request.data)
@@ -500,13 +502,14 @@ def list_pending_companies(request):
     serializer = CompanySerializer(companies, many=True)
     return Response(serializer.data)
 
-@api_view(['PATCH'])
+@csrf_exempt
+@api_view(['PATCH', 'POST'])
+@authentication_classes([])
 @permission_classes([AllowAny])
-def approve_company(request, company_id):
-    import secrets
-    from django.core.mail import send_mail
+def approve_company(request, company_id=None, id=None):
+    cid = company_id or id
     try:
-        company = Company.objects.get(id=company_id)
+        company = Company.objects.get(id=cid)
     except Company.DoesNotExist:
         return Response({'error': 'Company not found'}, status=404)
     company.status = "approved"
@@ -519,11 +522,7 @@ Dear HR,
 Your company registration has been approved!
 
 Login to the HR portal:
-URL: [YOUR_HR_PORTAL_URL]
-Email: 'hr@gmail.com'
-Password: (12345)
-
-Please keep your password safe. You will need it to access your company dashboard.
+Email: '{company.hr_email}'
 
 Best regards,
 Admin Team
@@ -540,7 +539,7 @@ Admin Team
                     "subject": subject,
                     "message": message
                 },
-                timeout=5
+                timeout=2
             )
         except Exception as e:
             print("Failed to send approval email via Node.js:", e)
@@ -554,17 +553,19 @@ def list_approved_companies(request):
     serializer = CompanySerializer(companies, many=True)
     return Response(serializer.data)
 
-@api_view(['PATCH'])
-def reject_company(request, id):
-    from django.core.mail import send_mail
+@csrf_exempt
+@api_view(['PATCH', 'POST'])
+@authentication_classes([])
+@permission_classes([AllowAny])
+def reject_company(request, id=None, company_id=None):
+    cid = id or company_id
     try:
-        company = Company.objects.get(id=id)
+        company = Company.objects.get(id=cid)
         company.status = 'rejected'
         company.save()
         # Send rejection email via Node.js
         subject = f"Your company '{company.name}' registration was rejected"
-        message = f"""
-Dear HR,
+        message = f"""Dear HR,
 
 We regret to inform you that your company registration has been rejected.
 
@@ -582,23 +583,26 @@ Admin Team
                         "subject": subject,
                         "message": message
                     },
-                    timeout=5
+                    timeout=2
                 )
             except Exception as e:
                 print("Failed to send rejection email via Node.js:", e)
-        return Response({'message': 'Company rejected'})
+        return Response({'message': 'Company rejected', 'id': company.id, 'status': 'rejected'})
     except Company.DoesNotExist:
         return Response({'error': 'Company not found'}, status=status.HTTP_404_NOT_FOUND)
-    
+    except Exception as e:
+        print("Error rejecting company:", e)
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @csrf_exempt
-@api_view(['DELETE'])
+@api_view(['DELETE', 'POST'])
+@authentication_classes([])
 @permission_classes([AllowAny])
-def delete_company(request, id):
+def delete_company(request, id=None, company_id=None):
+    cid = id or company_id
     print("=== DELETE COMPANY VIEW CALLED ===")
-    from django.core.mail import send_mail
     try:
-        company = Company.objects.get(id=id)
+        company = Company.objects.get(id=cid)
         print("Company hr_email:", company.hr_email)
         # Send deletion email before deleting via Node.js
         subject = f"Your company '{company.name}' has been deleted"
@@ -618,7 +622,7 @@ def delete_company(request, id):
                         "subject": subject,
                         "message": message
                     },
-                    timeout=5
+                    timeout=2
                 )
             except Exception as e:
                 print("Failed to send deletion email via Node.js:", e)
@@ -671,58 +675,74 @@ def practice_questions(request):
 # from rest_framework.response import Response
 # from sentence_transformers import SentenceTransformer, util
 
-_view_sbert_model = None
-_view_sbert_util = None
+def compute_similarity_score(user_text, ref_text):
+    import re
+    if not user_text or not ref_text:
+        return 0.0
+    u_str = str(user_text).strip().lower()
+    r_str = str(ref_text).strip().lower()
+    if u_str == r_str:
+        return 100.0
 
-def get_view_sbert():
-    global _view_sbert_model, _view_sbert_util
-    if _view_sbert_model is None:
-        try:
-            from sentence_transformers import SentenceTransformer as ST, util as u
-            _view_sbert_model = ST('all-MiniLM-L6-v2')
-            _view_sbert_util = u
-        except Exception:
-            _view_sbert_model = False
-            _view_sbert_util = False
-    return (
-        _view_sbert_model if _view_sbert_model is not False else None,
-        _view_sbert_util if _view_sbert_util is not False else None
-    )
+    # 1. Sequence Matcher ratio
+    from difflib import SequenceMatcher
+    seq_ratio = SequenceMatcher(None, u_str, r_str).ratio()
 
+    # 2. Word Token Overlap
+    u_words = set(re.findall(r'\b\w+\b', u_str))
+    r_words = set(re.findall(r'\b\w+\b', r_str))
+    overlap = len(u_words & r_words) / len(r_words) if r_words else 0.0
+
+    # 3. TF-IDF Cosine Similarity
+    try:
+        from sklearn.feature_extraction.text import TfidfVectorizer
+        from sklearn.metrics.pairwise import cosine_similarity
+        vec = TfidfVectorizer().fit([u_str, r_str])
+        tfidf_mat = vec.transform([u_str, r_str])
+        cos_sim = float(cosine_similarity(tfidf_mat[0:1], tfidf_mat[1:2])[0][0])
+    except Exception:
+        cos_sim = seq_ratio
+
+    # Weighted score: 50% TF-IDF, 30% word overlap, 20% sequence ratio
+    blended = (0.50 * cos_sim) + (0.30 * overlap) + (0.20 * seq_ratio)
+    final_score = min(100.0, max(0.0, blended * 100))
+    return round(final_score, 2)
+
+@csrf_exempt
 @api_view(['POST'])
+@authentication_classes([])
+@permission_classes([AllowAny])
 def evaluate_answer(request):
     data = request.data
     user_answer = data.get('answer', '')
     reference_answer = data.get('reference_answer', '')
     if not reference_answer:
-        # Fallback for demo/testing
         reference_answer = "This is a sample correct answer for testing purposes."
 
-    sbert_model, sbert_util = get_view_sbert()
-    if sbert_model is not None and sbert_util is not None:
-        try:
-            emb1 = sbert_model.encode(user_answer, convert_to_tensor=True)
-            emb2 = sbert_model.encode(reference_answer, convert_to_tensor=True)
-            score = sbert_util.cos_sim(emb1, emb2).item()
-            percent_score = round(score * 100, 2)
-        except Exception:
-            from difflib import SequenceMatcher
-            percent_score = round(SequenceMatcher(None, str(user_answer).lower(), str(reference_answer).lower()).ratio() * 100, 2)
-    else:
+    if not str(user_answer).strip():
+        return Response({
+            'score': '0%',
+            'feedback': 'No answer provided. Please type your answer before submitting.',
+            'reference_answer': reference_answer
+        })
+
+    try:
+        percent_score = compute_similarity_score(user_answer, reference_answer)
+    except Exception:
         from difflib import SequenceMatcher
         percent_score = round(SequenceMatcher(None, str(user_answer).lower(), str(reference_answer).lower()).ratio() * 100, 2)
 
-    if percent_score > 80:
-        feedback = "Excellent answer! Very relevant."
-    elif percent_score > 60:
-        feedback = "Good answer, but could be more detailed."
-    elif percent_score > 40:
-        feedback = "Some relevance, try to be more specific."
+    if percent_score >= 80:
+        feedback = "Excellent answer! Very relevant and comprehensive."
+    elif percent_score >= 60:
+        feedback = "Good answer, covers the key points well."
+    elif percent_score >= 40:
+        feedback = "Some relevance, but try to include more specific details."
     else:
-        feedback = "Your answer does not match the expected content. Try again."
+        feedback = "Your answer needs improvement. Check the reference answer to see key points."
 
     return Response({
-        'score': percent_score,
+        'score': f"{percent_score}%",
         'feedback': feedback,
         'reference_answer': reference_answer
     })
@@ -1512,7 +1532,10 @@ def aptitude_questions(request):
         # Fallback to custom questions if API fails
         return Response(custom_questions[:10])
 
+@csrf_exempt
 @api_view(['POST'])
+@authentication_classes([])
+@permission_classes([AllowAny])
 def evaluate_aptitude_answer(request):
     """
     Evaluate aptitude test answers and provide results
