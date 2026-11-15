@@ -12,6 +12,7 @@ def transcribe_audio(wav_path):
         return "Audio file is empty"
     
     recognizer = sr.Recognizer()
+    recognizer.operation_timeout = 15
     
     with sr.AudioFile(wav_path) as source:
         # Adjust for ambient noise

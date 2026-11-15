@@ -1,10 +1,13 @@
 from difflib import SequenceMatcher
+import os
 
 _sbert_model = None
 _sbert_util = None
 
 def get_sbert():
     global _sbert_model, _sbert_util
+    if os.getenv("ENABLE_SBERT", "").lower() not in {"1", "true", "yes"}:
+        return None, None
     if _sbert_model is None:
         try:
             from sentence_transformers import SentenceTransformer, util
