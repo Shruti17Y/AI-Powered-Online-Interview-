@@ -320,16 +320,7 @@ const CameraInterview = ({ companyId: propCompanyId, skills: propSkills }) => {
         body: formData,
       });
 
-      const responseText = await res.text();
-      let data;
-      try {
-        data = responseText ? JSON.parse(responseText) : {};
-      } catch {
-        throw new Error(`Server returned an invalid response (${res.status})`);
-      }
-      if (!res.ok) {
-        throw new Error(data.error || `Server rejected the submission (${res.status})`);
-      }
+      const data = await res.json();
 
       const result = {
         question: questions[currentIndex],
