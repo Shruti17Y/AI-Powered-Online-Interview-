@@ -1,4 +1,4 @@
-# InterviewPrep
+# AI Powered Online Interview 
 
 > An AI-assisted interview preparation and assessment platform for candidates, HR teams, and administrators.
 
